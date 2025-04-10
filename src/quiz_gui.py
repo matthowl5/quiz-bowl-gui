@@ -13,24 +13,21 @@ COURSES = [
     "Business Analytics"
 ]
 COLORS = {
-    "bg": "#ffedd8",           # Warm pastel yellow (background)
-    "accent": "#ff6f61",       # Vibrant coral orange (accent color)
-    "button": "#59cd90",       # Bright mint green (buttons)
-    "button_hover": "#52b788", # Deeper mint for hover effect
-    "text": "#23395d",         # Rich navy blue (text)
-    "highlight": "#84a59d",    # Soft sage green (highlighted selections)
+    "bg": "#e8f0fe",           # Soft blue-gray (background)
+    "accent": "#008080",       # Teal (accent)
+    "button": "#7c83fd",       # Deep lavender (buttons)
+    "button_hover": "#5c6ac4", # Slate blue (hover)
+    "text": "#1c1c1c",         # Charcoal black (text)
+    "highlight": "#ffd6a5",    # Light peach (selection highlight)
 }
 FONTS = {
-    "header": ("Comic Sans MS", 24, "bold"),  # Playful and fun
-    "body": ("Tahoma", 14),                  # Clean and easy-to-read
-    "button": ("Verdana", 12, "bold"),       # Modern and crisp
+    "header": ("Comic Sans MS", 24, "bold"),
+    "body": ("Tahoma", 14),
+    "button": ("Verdana", 12, "bold"),
 }
 
 class QuizApp:
-    """A cheerful GUI app for the Quiz Bowl."""
-
     def __init__(self, master):
-        """Initialize the main window."""
         self.master = master
         self.master.title("Quiz Bowl")
         self.master.configure(bg=COLORS["bg"])
@@ -41,7 +38,6 @@ class QuizApp:
         self.show_course_selection()
 
     def show_course_selection(self):
-        """Display the course selection screen."""
         self.clear_window()
 
         tk.Label(self.master, text="🌟 Quiz Bowl 🌟", font=FONTS["header"],
@@ -51,16 +47,14 @@ class QuizApp:
                  bg=COLORS["bg"], fg=COLORS["text"]).pack(pady=10)
 
         for course in COURSES:
-            tk.Button(
-                self.master,
-                text=course,
-                command=lambda c=course: self.start_quiz(c),
+            btn = tk.Button(
+                self.master, text=course, command=lambda c=course: self.start_quiz(c),
                 bg=COLORS["button"], fg="white", activebackground=COLORS["button_hover"],
                 relief="flat", bd=2, padx=10, pady=5, font=FONTS["button"]
-            ).pack(pady=6, ipadx=10)
+            )
+            btn.pack(pady=6, ipadx=10)
 
     def start_quiz(self, course):
-        """Initialize the quiz for the selected course."""
         self.course = course
         self.questions = self.get_questions(course)
         if not self.questions:
@@ -71,7 +65,6 @@ class QuizApp:
         self.show_question()
 
     def get_questions(self, course):
-        """Retrieve and shuffle questions for the selected course."""
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
         cursor.execute(f"SELECT * FROM {course.replace(' ', '_').lower()}")
@@ -81,7 +74,6 @@ class QuizApp:
         return rows
 
     def show_question(self):
-        """Display the current question and answer options."""
         self.clear_window()
 
         if self.current_question >= len(self.questions):
@@ -119,7 +111,6 @@ class QuizApp:
         ).pack(pady=25)
 
     def check_answer(self):
-        """Check the selected answer and proceed to the next question."""
         selected = self.selected.get()
         if not selected:
             messagebox.showwarning("No Selection", "Please select an answer.")
@@ -130,12 +121,22 @@ class QuizApp:
         self.show_question()
 
     def show_score(self):
-        """Display the final score."""
         self.clear_window()
+
+        total = len(self.questions)
+        percentage = (self.score / total) * 100
+        if percentage >= 90:
+            emoji = "🏆"
+        elif percentage >= 70:
+            emoji = "😀"
+        elif percentage >= 50:
+            emoji = "😐"
+        else:
+            emoji = "😢"
 
         tk.Label(
             self.master,
-            text=f"🎉 Your Score: {self.score} / {len(self.questions)}",
+            text=f"{emoji} Your Score: {self.score} / {total}",
             font=FONTS["header"], fg=COLORS["text"], bg=COLORS["bg"]
         ).pack(pady=40)
 
@@ -150,12 +151,11 @@ class QuizApp:
         ).pack(pady=10)
 
     def clear_window(self):
-        """Remove all widgets from the window."""
         for widget in self.master.winfo_children():
             widget.destroy()
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.geometry("600x500")  # Balanced window size
+    root.geometry("600x500")
     app = QuizApp(root)
     root.mainloop()
