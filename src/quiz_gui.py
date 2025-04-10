@@ -26,6 +26,8 @@ FONTS = {
     "button": ("Verdana", 12, "bold"),
 }
 
+ADMIN_PASSWORD = "jimmyjenkins"  # Admin password
+
 class QuizApp:
     def __init__(self, master):
         self.master = master
@@ -35,13 +37,19 @@ class QuizApp:
         self.questions = []
         self.current_question = 0
         self.score = 0
-        self.show_course_selection()
+        self.show_main_menu()
 
-    def show_course_selection(self):
+    def show_main_menu(self):
         self.clear_window()
 
         tk.Label(self.master, text="🌟 Quiz Bowl 🌟", font=FONTS["header"],
                  fg=COLORS["text"], bg=COLORS["bg"]).pack(pady=20)
+
+        tk.Button(
+            self.master, text="Admin Login", command=self.admin_login,
+            bg=COLORS["button"], fg="white", activebackground=COLORS["button_hover"],
+            relief="flat", bd=2, padx=10, pady=5, font=FONTS["button"]
+        ).pack(pady=10)
 
         tk.Label(self.master, text="Choose a course category:", font=FONTS["body"],
                  bg=COLORS["bg"], fg=COLORS["text"]).pack(pady=10)
@@ -53,6 +61,57 @@ class QuizApp:
                 relief="flat", bd=2, padx=10, pady=5, font=FONTS["button"]
             )
             btn.pack(pady=6, ipadx=10)
+
+    def admin_login(self):
+        self.clear_window()
+        tk.Label(self.master, text="Admin Login", font=FONTS["header"], fg=COLORS["text"], bg=COLORS["bg"]).pack(pady=20)
+
+        tk.Label(self.master, text="Enter Password:", font=FONTS["body"], bg=COLORS["bg"], fg=COLORS["text"]).pack(pady=10)
+
+        self.password_entry = tk.Entry(self.master, show="*", font=FONTS["body"], bg=COLORS["bg"], fg=COLORS["text"])
+        self.password_entry.pack(pady=10)
+
+        tk.Button(
+            self.master, text="Login", command=self.check_admin_password,
+            bg=COLORS["button"], fg="white", activebackground=COLORS["button_hover"],
+            relief="flat", bd=2, padx=10, pady=5, font=FONTS["button"]
+        ).pack(pady=20)
+
+    def check_admin_password(self):
+        password = self.password_entry.get()
+        if password == ADMIN_PASSWORD:
+            self.show_admin_interface()
+        else:
+            messagebox.showerror("Access Denied", "Incorrect password.")
+
+    def show_admin_interface(self):
+        self.clear_window()
+        tk.Label(self.master, text="Admin Interface", font=FONTS["header"], fg=COLORS["text"], bg=COLORS["bg"]).pack(pady=20)
+
+        tk.Button(
+            self.master, text="Add Question", command=self.add_question,
+            bg=COLORS["button"], fg="white", activebackground=COLORS["button_hover"],
+            relief="flat", bd=2, padx=10, pady=5, font=FONTS["button"]
+        ).pack(pady=10)
+
+        tk.Button(
+            self.master, text="View Questions", command=self.view_questions,
+            bg=COLORS["button"], fg="white", activebackground=COLORS["button_hover"],
+            relief="flat", bd=2, padx=10, pady=5, font=FONTS["button"]
+        ).pack(pady=10)
+
+        tk.Button(
+            self.master, text="Back to Main Menu", command=self.show_main_menu,
+            bg=COLORS["accent"], fg="white", font=FONTS["button"], padx=10, pady=5
+        ).pack(pady=10)
+
+    def add_question(self):
+        # Placeholder for adding a question functionality
+        messagebox.showinfo("Add Question", "This feature will allow the admin to add new questions.")
+
+    def view_questions(self):
+        # Placeholder for viewing existing questions
+        messagebox.showinfo("View Questions", "This feature will allow the admin to view and manage questions.")
 
     def start_quiz(self, course):
         self.course = course
@@ -141,7 +200,7 @@ class QuizApp:
         ).pack(pady=40)
 
         tk.Button(
-            self.master, text="Take Another Quiz", command=self.show_course_selection,
+            self.master, text="Take Another Quiz", command=self.show_main_menu,
             bg=COLORS["button"], fg="white", font=FONTS["button"], padx=10, pady=5
         ).pack(pady=10)
 
