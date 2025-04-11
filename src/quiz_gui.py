@@ -292,13 +292,20 @@ class QuizApp:
         self.edit_entries = {}
         fields = ["Question", "Option A", "Option B", "Option C", "Option D", "Correct Answer (A/B/C/D)"]
         current_values = [question, a, b, c, d, correct]
+        
+        form_frame = tk.Frame(self.master, bg=COLORS["bg"])
+        form_frame.pack(pady=10)
 
-        for field, current_value in zip(fields, current_values):
-            tk.Label(self.master, text=field + ":", font=FONTS["body"], bg=COLORS["bg"], fg=COLORS["text"]).pack()
-            entry = tk.Entry(self.master, font=FONTS["body"], width=60)
+        for i, (field, current_value) in enumerate(zip(fields, current_values)):
+            label = tk.Label(form_frame, text=field + ":", font=FONTS["body"], bg=COLORS["bg"], fg=COLORS["text"])
+            label.grid(row=i, column=0, sticky="e", padx=10, pady=5)
+
+            entry = tk.Entry(form_frame, font=FONTS["body"], width=50)
             entry.insert(0, current_value)
-            entry.pack(pady=5)
+            entry.grid(row=i, column=1, pady=5, sticky="w")
+
             self.edit_entries[field] = entry
+
 
         # Button to save edited question
         tk.Button(self.master, text="Save Changes", command=lambda: self.save_edited_question(q_id, course), bg=COLORS["button"], fg="white",
