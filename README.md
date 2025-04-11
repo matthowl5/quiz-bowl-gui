@@ -2,6 +2,10 @@
 
 A Python-based GUI application for conducting quiz bowl-style quizzes across five business-related courses. Built using `tkinter`, the app includes both a quiz-taker interface and an admin interface for managing questions.
 
+IMPORTANT: The final version of the code is contained in the file main.py. The older code, which was worked on over time, can be viewed in quiz_gui.py.
+The file setup_database.py was used early in the project to create the database.
+The file add_question.py was used early in the project to test the database by manually adding questions.
+
 ---
 
 ## 🧠 Courses Covered
@@ -36,7 +40,7 @@ Ensure you have Python 3 installed. This app uses only built-in libraries (`tkin
    cd quiz-bowl-gui
 2. Run the app using Python:
     ```bash
-    python quiz_gui.py
+    python main.py
 
 🧩 App Features
 For Quiz-Takers:
