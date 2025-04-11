@@ -225,7 +225,7 @@ class QuizApp:
         ).pack(pady=10)
 
     def delete_question(self, row):
-        course = row[0]
+        course = self.course_var.get()
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
         cursor.execute(f"DELETE FROM {course.replace(' ', '_').lower()} WHERE id = ?", (row[0],))
