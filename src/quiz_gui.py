@@ -177,6 +177,9 @@ class QuizApp:
 
         tk.Button(self.master, text="View Questions", command=self.view_questions, bg=COLORS["button"], fg="white",
                   activebackground=COLORS["button_hover"], font=FONTS["button"], padx=10, pady=5).pack(pady=10)
+        
+        tk.Button(self.master, text="Edit Question", command=self.edit_question, bg=COLORS["button"], fg="white",
+              activebackground=COLORS["button_hover"], font=FONTS["button"], padx=10, pady=5).pack(pady=10)
 
         tk.Button(self.master, text="Back to Main Menu", command=self.show_main_menu, bg=COLORS["accent"], fg="white", font=FONTS["button"], padx=10, pady=5).pack(pady=20)
 
@@ -206,6 +209,137 @@ class QuizApp:
         tk.Button(self.master, text="Back to Admin Menu", command=self.show_admin_interface, bg=COLORS["accent"], fg="white",
                 font=FONTS["button"], padx=10, pady=5).pack(pady=10)
     
+    def edit_question(self):
+        self.clear_window()
+
+        tk.Label(self.master, text="Edit Existing Question", font=FONTS["header"], bg=COLORS["bg"], fg=COLORS["text"]).pack(pady=20)
+
+        # Dropdown for course
+        self.edit_course_var = tk.StringVar()
+        course_dropdown = ttk.Combobox(self.master, textvariable=self.edit_course_var, values=COURSES, font=FONTS["body"])
+        course_dropdown.set("Select Course")
+        course_dropdown.pack(pady=10)
+
+        # Button to load questions for editing
+        tk.Button(self.master, text="Load Questions", command=self.load_questions_for_edit, bg=COLORS["button"], fg="white",
+                font=FONTS["button"], padx=10, pady=5).pack(pady=10)
+
+        # Return button to Admin Menu
+        tk.Button(self.master, text="Back to Admin Menu", command=self.show_admin_interface, bg=COLORS["accent"], fg="white",
+                font=FONTS["button"], padx=10, pady=5).pack(pady=10)
+        
+    def load_questions_for_edit(self):
+        course = self.edit_course_var.get()
+        if course not in COURSES:
+            messagebox.showwarning("Invalid Selection", "Please select a valid course.")
+            return
+
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT * FROM {course.replace(' ', '_').lower()}")
+        rows = cursor.fetchall()
+        conn.close()
+
+        # Create a scrollable frame for the list of questions
+        scrollable_frame = self.create_scrollable_frame()
+
+        # Display questions
+        for row in rows:
+            q_id, question, a, b, c, d, correct = row
+            question_frame = tk.Frame(scrollable_frame, bg=COLORS["bg"])
+
+            tk.Label(question_frame, text=f"Q: {question}", font=FONTS["body"], bg=COLORS["bg"], fg=COLORS["text"]).pack(pady=5)
+
+            # Display answer options
+            for opt, val in zip([a, b, c, d], ['A', 'B', 'C', 'D']):
+                tk.Label(question_frame, text=f"{val}. {opt}", font=FONTS["body"], bg=COLORS["bg"], fg=COLORS["text"]).pack(anchor="w", padx=20)
+
+            # Button to edit the question
+            #tk.Button(question_frame, text="Edit", command=lambda q_id=q_id: self.open_edit_form(q_id), bg=COLORS["accent"], fg="white",
+             #       font=FONTS["button"], padx=10, pady=5).pack(pady=5)
+            tk.Button(
+                question_frame,
+                text="Edit",
+                command=lambda q_id=q_id, course=course: self.open_edit_form(q_id, course),
+                bg=COLORS["accent"],
+                fg="white",
+                font=FONTS["button"],
+                padx=10,
+                pady=5
+            ).pack(pady=5)
+
+            question_frame.pack(pady=10, padx=20, fill="x")
+
+        # Return button to Admin Menu
+        #tk.Button(self.master, text="Back to Admin Menu", command=self.show_admin_interface, bg=COLORS["accent"], fg="white", font=FONTS["button"], padx=10, pady=5).pack(pady=10)
+
+    def open_edit_form(self, q_id, course):
+        self.clear_window()
+
+        tk.Label(self.master, text="Edit Question", font=FONTS["header"], bg=COLORS["bg"], fg=COLORS["text"]).pack(pady=20)
+
+        # Fetch the existing question data
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        #cursor.execute(f"SELECT * FROM {COURSES[0].replace(' ', '_').lower()} WHERE id = ?", (q_id,))
+        cursor.execute(f"SELECT * FROM {course.replace(' ', '_').lower()} WHERE id = ?", (q_id,))
+        row = cursor.fetchone()
+        conn.close()
+
+        # Pre-populate the fields with current question data
+        question, a, b, c, d, correct = row[1:]
+
+        self.edit_entries = {}
+        fields = ["Question", "Option A", "Option B", "Option C", "Option D", "Correct Answer (A/B/C/D)"]
+        current_values = [question, a, b, c, d, correct]
+
+        for field, current_value in zip(fields, current_values):
+            tk.Label(self.master, text=field + ":", font=FONTS["body"], bg=COLORS["bg"], fg=COLORS["text"]).pack()
+            entry = tk.Entry(self.master, font=FONTS["body"], width=60)
+            entry.insert(0, current_value)
+            entry.pack(pady=5)
+            self.edit_entries[field] = entry
+
+        # Button to save edited question
+        tk.Button(self.master, text="Save Changes", command=lambda: self.save_edited_question(q_id, course), bg=COLORS["button"], fg="white",
+                font=FONTS["button"], padx=10, pady=5).pack(pady=10)
+
+        # Return button to Admin Menu
+        tk.Button(self.master, text="Back to Admin Menu", command=self.show_admin_interface, bg=COLORS["accent"], fg="white", font=FONTS["button"], padx=10, pady=5).pack(pady=10)
+
+    def save_edited_question(self, q_id, course):
+        values = {field: self.edit_entries[field].get().strip() for field in self.edit_entries}
+        if not all(values.values()):
+            messagebox.showerror("Error", "Please fill in all fields.")
+            return
+
+        if values["Correct Answer (A/B/C/D)"] not in ["A", "B", "C", "D"]:
+            messagebox.showerror("Error", "Correct answer must be A, B, C, or D.")
+            return
+
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute(f"""
+            UPDATE {course.replace(' ', '_').lower()} 
+            SET question = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?, correct_answer = ?
+            WHERE id = ?
+        """, (
+            values["Question"],
+            values["Option A"],
+            values["Option B"],
+            values["Option C"],
+            values["Option D"],
+            values["Correct Answer (A/B/C/D)"],
+            q_id
+        ))
+        conn.commit()
+        conn.close()
+
+        messagebox.showinfo("Success", "Question updated successfully!")
+        self.show_admin_interface()
+
+
+            
     def save_question(self):
         course = self.add_course_var.get()
         if course not in COURSES:
@@ -316,6 +450,27 @@ class QuizApp:
     def clear_window(self):
         for widget in self.master.winfo_children():
             widget.destroy()
+
+    def create_scrollable_frame(self):
+        canvas = tk.Canvas(self.master, bg=COLORS["bg"])
+        scrollbar = tk.Scrollbar(self.master, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg=COLORS["bg"])
+
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+
+        window = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        return scrollable_frame
+
     
     def give_feedback(self, is_correct):
     # Display feedback text
