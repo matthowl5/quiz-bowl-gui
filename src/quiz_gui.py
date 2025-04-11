@@ -181,8 +181,67 @@ class QuizApp:
         tk.Button(self.master, text="Back to Main Menu", command=self.show_main_menu, bg=COLORS["accent"], fg="white", font=FONTS["button"], padx=10, pady=5).pack(pady=20)
 
     def add_question(self):
-        # Same as before, no changes here
-        pass
+        self.clear_window()
+
+        tk.Label(self.master, text="Add New Question", font=FONTS["header"], bg=COLORS["bg"], fg=COLORS["text"]).pack(pady=20)
+
+        # Dropdown for course
+        self.add_course_var = tk.StringVar()
+        course_dropdown = ttk.Combobox(self.master, textvariable=self.add_course_var, values=COURSES, font=FONTS["body"])
+        course_dropdown.set("Select Course")
+        course_dropdown.pack(pady=10)
+
+        # Question and answer entries
+        self.entries = {}
+        fields = ["Question", "Option A", "Option B", "Option C", "Option D", "Correct Answer (A/B/C/D)"]
+        for field in fields:
+            tk.Label(self.master, text=field + ":", font=FONTS["body"], bg=COLORS["bg"], fg=COLORS["text"]).pack()
+            entry = tk.Entry(self.master, font=FONTS["body"], width=60)
+            entry.pack(pady=5)
+            self.entries[field] = entry
+
+        tk.Button(self.master, text="Submit", command=self.save_question, bg=COLORS["button"], fg="white",
+                font=FONTS["button"], padx=10, pady=5).pack(pady=10)
+
+        tk.Button(self.master, text="Back to Admin Menu", command=self.show_admin_interface, bg=COLORS["accent"], fg="white",
+                font=FONTS["button"], padx=10, pady=5).pack(pady=10)
+    
+    def save_question(self):
+        course = self.add_course_var.get()
+        if course not in COURSES:
+            messagebox.showerror("Error", "Please select a valid course.")
+            return
+
+        values = {field: self.entries[field].get().strip() for field in self.entries}
+        if not all(values.values()):
+            messagebox.showerror("Error", "Please fill in all fields.")
+            return
+
+        if values["Correct Answer (A/B/C/D)"] not in ["A", "B", "C", "D"]:
+            messagebox.showerror("Error", "Correct answer must be A, B, C, or D.")
+            return
+
+        table = course.replace(" ", "_").lower()
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        cursor.execute(f"""
+            INSERT INTO {table} (question, option_a, option_b, option_c, option_d, correct_answer)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+            values["Question"],
+            values["Option A"],
+            values["Option B"],
+            values["Option C"],
+            values["Option D"],
+            values["Correct Answer (A/B/C/D)"]
+        ))
+        conn.commit()
+        conn.close()
+
+        messagebox.showinfo("Success", "Question added successfully!")
+        self.show_admin_interface()
+
+
 
     def view_questions(self):
         self.clear_window()
