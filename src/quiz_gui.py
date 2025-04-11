@@ -393,12 +393,43 @@ class QuizApp:
                   font=FONTS["button"], padx=10, pady=5).pack(pady=10)
 
     def show_questions_for_course(self):
+        """self.clear_window()
+
+        course = self.course_var.get()
+        if course not in COURSES:
+            #messagebox.showwarning("Invalid Selection", "Please select a valid course.")
+            # Provide a way back to the course selection
+            tk.Label(self.master, text="Please select a valid course.", bg=PRIMARY_COLOR, fg=TEXT_COLOR,
+                 font=(FONT_FAMILY, FONT_SIZE + 2)).pack(pady=10)
+
+            tk.Button(self.master, text="Back", font=(FONT_FAMILY, FONT_SIZE),
+                    bg=BUTTON_COLOR, fg=TEXT_COLOR, command=self.show_admin_interface).pack(pady=10)
+            return"""
+    
         self.clear_window()
 
         course = self.course_var.get()
         if course not in COURSES:
-            messagebox.showwarning("Invalid Selection", "Please select a valid course.")
+            # Display error message
+            tk.Label(
+                self.master,
+                text="Please select a valid course.",
+                bg="#ffdddd",          # light red background for warning
+                fg="#660000",          # dark red text
+                font=("Helvetica", 14, "bold")
+            ).pack(pady=10)
+
+            # Back button to return to admin interface
+            tk.Button(
+                self.master,
+                text="Back",
+                font=("Helvetica", 12),
+                bg="#cc0000",          # red button
+                fg="white",
+                command=self.show_admin_interface
+            ).pack(pady=10)
             return
+
 
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
